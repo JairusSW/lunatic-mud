@@ -3,6 +3,7 @@ import { SessionEvent } from "../session/SessionEvent";
 
 export class TelnetStartWrapper {
     constructor(
+        public id: u64,
         public socket: TCPSocket,
         public session: Process<SessionEvent>,
     ) {}
