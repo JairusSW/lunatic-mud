@@ -1,0 +1,26 @@
+{
+  "name": "lunatic-mud",
+  "version": "1.0.0",
+  "description": "Lunatic MUD engine",
+  "scripts": {
+    "test": "node tests",
+    "asbuild:untouched": "asc assembly/index.ts --target debug",
+    "asbuild:optimized": "asc assembly/index.ts --target release",
+    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JairusSW/lunatic-mud.git"
+  },
+  "author": "Joshua Tenner <tenner.joshua@gmail.com>, and Jairus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JairusSW/lunatic-mud/issues"
+  },
+  "homepage": "https://github.com/JairusSW/lunatic-mud#readme",
+  "devDependencies": {
+    "as-lunatic": "github:lunatic-solutions/as-lunatic#big-refactor",
+    "as-telnet": "^0.0.1",
+    "assemblyscript": "^0.19.22"
+  }
+}
