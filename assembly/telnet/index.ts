@@ -6,13 +6,25 @@ import { IncomingDataEvent } from "../session/IncomingDataEvent";
 import { DisconnectEvent } from "../session/DisconnectEvent";
 import { TelnetReceiveEvent } from "./TelnetReceiveEvent";
 import { TelnetDisconnectEvent } from "./TelnetDisconnectEvent";
+import { TelnetSendEvent } from "./TelnetSendEvent";
+import { TelnetSetSessionIDEvent } from "./TelnetSetSessionIDEvent";
+import { SessionEvent } from "../session/SessionEvent";
 
-export function onData(t: telnet_t<TelnetStartWrapper>, ev: telnet_event_data_t): void {
+export class TelnetContext {
+    constructor(
+        public id: u64,
+        public session: Process<SessionEvent>,
+        public socket: TCPSocket,
+    ) {}
+
+}
+
+export function onData(t: telnet_t<TelnetContext>, ev: telnet_event_data_t): void {
     let session = t.data.session;
     session.send(new IncomingDataEvent(ev.data));
 }
 
-export function onError(t: telnet_t<TelnetStartWrapper>, ev: telnet_error_t, fatal: bool, desc: string): void {
+export function onError(t: telnet_t<TelnetContext>, ev: telnet_error_t, fatal: bool, desc: string): void {
     trace("Socket Error: " + desc);
     let session = t.data.session;
     if (fatal) session.send(new DisconnectEvent(t.data.id));
@@ -54,7 +66,8 @@ export function telnetReadCallback(start: TCPReaderStart, _mb: Mailbox<i32>): vo
 
 export function telnetCallback(start: TelnetStartWrapper, mb: Mailbox<TelnetEvent>): void {
     let compatibility = new StaticArray<u8>(256);
-    let t = new telnet_t<TelnetStartWrapper>(start, compatibility, 0);
+    let ctx = new TelnetContext(0, start.session, start.socket);
+    let t = new telnet_t<TelnetContext>(ctx, compatibility, 0);
     t.onData = onData;
     t.onError = onError;
     t.onSend = onSend;
@@ -70,15 +83,22 @@ export function telnetCallback(start: TelnetStartWrapper, mb: Mailbox<TelnetEven
             case MessageType.Timeout: continue;
             case MessageType.Data: {
                 let unboxed = message.value!.value;
-                if (unboxed instanceof DisconnectEvent) {
+                if (unboxed instanceof TelnetDisconnectEvent) {
                     // the reading process is dead, send session disconnect
-                    start.session.send(new DisconnectEvent(start.id));
+                    start.session.send(new DisconnectEvent(ctx.id));
                     return;
+                } else if (unboxed instanceof TelnetReceiveEvent) {
+                    t.recv(unboxed.data);
+                } else if (unboxed instanceof TelnetSendEvent) {
+                    t.send_buffer(unboxed.data);
+                } else if (unboxed instanceof TelnetSetSessionIDEvent) {
+                    ctx.id = unboxed.id;
                 }
+                continue;
             }
             case MessageType.Signal: {
                 // the reading process is dead because an assertion error occured, send session disconnect
-                start.session.send(new DisconnectEvent(start.id));
+                start.session.send(new DisconnectEvent(ctx.id));
                 return;
             }
         }
