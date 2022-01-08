@@ -1,5 +1,7 @@
-const fs = require("fs");
-const loader = require("@assemblyscript/loader");
-const imports = { /* imports go here */ };
-const wasmModule = loader.instantiateSync(fs.readFileSync(__dirname + "/build/optimized.wasm"), imports);
-module.exports = wasmModule.exports;
+const net = require("net");
+const socket = net.connect(10000, "127.0.0.1");
+socket.on("connect", () => {
+    socket.write("Hello world!");
+});
+
+socket.pipe(process.stdout);

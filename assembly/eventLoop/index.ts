@@ -1,4 +1,4 @@
-import { Mailbox, Process, TCPSocket } from "as-lunatic";
+import { Mailbox, MessageType, Process, TCPSocket } from "as-lunatic";
 import { sessionCallback } from "../session";
 import { SessionEvent } from "../session/SessionEvent";
 import { IncomingConnectionEvent } from "./IncomingConnectionEvent";
@@ -9,14 +9,25 @@ export class EventLoopContext {
 }
 
 export function eventLoopCallback(mb: Mailbox<MudEvent>): void {
+    trace("Event Loop Started");
     let ctx = new EventLoopContext();
+    Process.dieWhenLinkDies(false);
     while (true) {
         let message = mb.receive();
-        if (message instanceof IncomingConnectionEvent) {
-            handleIncomingConnectionEvent(ctx, <IncomingConnectionEvent>message);
-        } else {
-            assert(false);
+        switch (message.type) {
+            case MessageType.Data: {
+                trace("Message received");
+                let unpacked = message.value!.value;
+                if (unpacked instanceof IncomingConnectionEvent) {
+                    trace("We are handling an incoming connection.");
+                    handleIncomingConnectionEvent(ctx, <IncomingConnectionEvent>unpacked);
+                }
+                continue;
+            }
+            case MessageType.Timeout: continue;
+            case MessageType.Signal: continue;
         }
+
     }
 }
 

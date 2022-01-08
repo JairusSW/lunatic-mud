@@ -30,8 +30,8 @@ export function onError(t: telnet_t<TelnetContext>, ev: telnet_error_t, fatal: b
     if (fatal) session.send(new DisconnectEvent(t.data.id));
 }
 
-export function onSend(t: telnet_t<TelnetStartWrapper>, data: StaticArray<u8>): void {
-    t.data.socket.writeStaticArray(data);
+export function onSend(t: telnet_t<TelnetContext>, data: StaticArray<u8>): void {
+    t.data.socket.writeStaticArray<StaticArray<u8>, u8>(data);
 }
 
 class TCPReaderStart {
@@ -88,11 +88,14 @@ export function telnetCallback(start: TelnetStartWrapper, mb: Mailbox<TelnetEven
                     start.session.send(new DisconnectEvent(ctx.id));
                     return;
                 } else if (unboxed instanceof TelnetReceiveEvent) {
-                    t.recv(unboxed.data);
+                    let cast = <TelnetReceiveEvent>unboxed;
+                    t.recv(cast.data);
                 } else if (unboxed instanceof TelnetSendEvent) {
-                    t.send_buffer(unboxed.data);
+                    let cast = <TelnetSendEvent>unboxed;
+                    t.send_buffer(cast.data);
                 } else if (unboxed instanceof TelnetSetSessionIDEvent) {
-                    ctx.id = unboxed.id;
+                    let cast = <TelnetSetSessionIDEvent>unboxed;
+                    ctx.id = cast.id;
                 }
                 continue;
             }

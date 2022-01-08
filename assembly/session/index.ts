@@ -1,6 +1,8 @@
 import { Mailbox, MessageType, Process, TCPSocket } from "as-lunatic";
+import { telnetCallback } from "../telnet";
 import { TelnetEvent } from "../telnet/TelnetEvent";
 import { TelnetSendEvent } from "../telnet/TelnetSendEvent";
+import { TelnetSetSessionIDEvent } from "../telnet/TelnetSetSessionIDEvent";
 import { TelnetStartWrapper } from "../telnet/TelnetStartWrapper";
 import { DisconnectEvent } from "./DisconnectEvent";
 import { IncomingDataEvent } from "./IncomingDataEvent";
@@ -16,7 +18,7 @@ export function sessionCallback(socket: TCPSocket, mb: Mailbox<SessionEvent>): v
         .expect()!;
     let link = telnetConnectionProcess.link();
     connections.set(link, telnetConnectionProcess);
-    telnetConnectionProcess.send(new SetSessionIDEvent(link));
+    telnetConnectionProcess.send(new TelnetSetSessionIDEvent(link));
     while (true) {
         let message = mb.receive();
         switch (message.type) {
@@ -29,7 +31,8 @@ export function sessionCallback(socket: TCPSocket, mb: Mailbox<SessionEvent>): v
             case MessageType.Data: {
                 let value = message.value!.value;
                 if (value instanceof IncomingDataEvent) {
-                    let data = value.data;
+                    let cast = <IncomingDataEvent>value;
+                    let data = cast.data;
                     let dataMessage = new TelnetSendEvent(data);
                     let connectionsArray = connections.values();
                     let len = connectionsArray.length;

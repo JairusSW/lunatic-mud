@@ -16,5 +16,6 @@
       "noAssert": false
     }
   },
-  "options": {}
+  "options": {},
+  "extends": "as-lunatic/asconfig.json"
 }

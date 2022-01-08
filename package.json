@@ -6,7 +6,9 @@
     "test": "node tests",
     "asbuild:untouched": "asc assembly/index.ts --target debug",
     "asbuild:optimized": "asc assembly/index.ts --target release",
-    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
+    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized",
+    "start": "run-s asbuild lunatic",
+    "lunatic": "cross-env RUST_LOG=lunatic=debug lunatic build/untouched.wasm"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,8 @@
   "devDependencies": {
     "as-lunatic": "github:lunatic-solutions/as-lunatic#big-refactor",
     "as-telnet": "^0.0.1",
-    "assemblyscript": "^0.19.22"
+    "assemblyscript": "^0.19.22",
+    "cross-env": "^7.0.3",
+    "npm-run-all": "^4.1.5"
   }
 }
