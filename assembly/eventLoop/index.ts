@@ -9,7 +9,6 @@ export class EventLoopContext {
 }
 
 export function eventLoopCallback(mb: Mailbox<MudEvent>): void {
-    trace("Event Loop Started");
     let ctx = new EventLoopContext();
     Process.dieWhenLinkDies(false);
     while (true) {

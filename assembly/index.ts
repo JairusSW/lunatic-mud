@@ -9,9 +9,7 @@ export function _start(): void {
     .expect()!;
 
   while (true) {
-    let socket = server.accept()
-      .expect()!;
-    trace("found a socket");
-    eventLoopProcess.sendReference<IncomingConnectionEvent>(new IncomingConnectionEvent(socket));
+    let socket = server.accept().expect()!;
+    eventLoopProcess.send<IncomingConnectionEvent>(new IncomingConnectionEvent(socket));
   }
 }
